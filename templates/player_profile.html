@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player.nickname }} - Профиль игрока{% endblock %}
+
+{% block content %}
+<div class="player-profile">
+    <!-- Player Header -->
+    <div class="player-header text-center py-5 mb-4">
+        <div class="player-avatar mb-3">
+            <img src="{{ player.minecraft_skin_url }}" alt="{{ player.nickname }}"
+                 class="rounded-circle skin-avatar" style="width: 128px; height: 128px; image-rendering: pixelated;">
+        </div>
+        <h1 class="display-4 fw-bold">
+            <span class="player-nickname" data-player-id="{{ player.id }}">{{ player.nickname }}</span>
+        </h1>
+        <p class="lead">
+            <span class="player-role" data-player-id="{{ player.id }}">{{ player.display_role }}</span>
+        </p>
+
+        <!-- Star Rating -->
+        <div class="star-rating mb-3">
+            {% for i in range(1, 6) %}
+                <i class="fas fa-star {{ 'text-warning' if i <= player.star_rating else 'text-muted' }} fs-4"></i>
+            {% endfor %}
+        </div>
+
+        <!-- Level Info -->
+        <div class="level-display">
+            <div class="level-circle">
+                <span class="level-number">{{ player.level }}</span>
+            </div>
+            <div class="progress level-progress-large">
+                <div class="progress-bar bg-warning" style="width: {{ player.level_progress }}%"></div>
+            </div>
+            <p class="text-muted mt-2">{{ "{:,}".format(player.experience) }} XP</p>
+        </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="row g-4 mb-5">
+        <!-- Combat Stats -->
+        <div class="col-md-6">
+            <div class="stat-section">
+                <h3 class="section-title">
+                    <i class="fas fa-sword text-danger me-2"></i>Боевая статистика
+                </h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-success player-stat" data-stat="kills" data-player-id="{{ player.id }}">{{ player.kills }}</div>
+                            <div class="stat-label">Киллы</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-warning player-stat" data-stat="final_kills" data-player-id="{{ player.id }}">{{ player.final_kills }}</div>
+                            <div class="stat-label">Финальные киллы</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-danger player-stat" data-stat="deaths" data-player-id="{{ player.id }}">{{ player.deaths }}</div>
+                            <div class="stat-label">Смерти</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-info player-stat" data-stat="final_deaths" data-player-id="{{ player.id }}">{{ player.final_deaths }}</div>
+                            <div class="stat-label">Финальные смерти</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="stat-box">
+                            <div class="stat-value {{ 'text-success' if player.kd_ratio >= 1.5 else 'text-warning' if player.kd_ratio >= 1.0 else 'text-danger' }}">
+                                {{ player.kd_ratio }}
+                            </div>
+                            <div class="stat-label">K/D Ratio</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Stats -->
+        <div class="col-md-6">
+            <div class="stat-section">
+                <h3 class="section-title">
+                    <i class="fas fa-gamepad text-info me-2"></i>Игровая статистика
+                </h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-primary player-stat" data-stat="games_played" data-player-id="{{ player.id }}">{{ player.games_played }}</div>
+                            <div class="stat-label">Игр сыграно</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-success player-stat" data-stat="wins" data-player-id="{{ player.id }}">{{ player.wins }}</div>
+                            <div class="stat-label">Победы</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-info player-stat" data-stat="beds_broken" data-player-id="{{ player.id }}">{{ player.beds_broken }}</div>
+                            <div class="stat-label">Кровати сломано</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value {{ 'text-success' if player.win_rate >= 70 else 'text-warning' if player.win_rate >= 50 else 'text-danger' }}">
+                                {{ player.win_rate }}%
+                            </div>
+                            <div class="stat-label">Процент побед</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources -->
+        <div class="col-md-6">
+            <div class="stat-section">
+                <h3 class="section-title">
+                    <i class="fas fa-gem text-primary me-2"></i>Ресурсы
+                </h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-secondary">{{ player.iron_collected }}</div>
+                            <div class="stat-label">Железо</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-warning">{{ player.gold_collected }}</div>
+                            <div class="stat-label">Золото</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-info">{{ player.diamond_collected }}</div>
+                            <div class="stat-label">Алмазы</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-success">{{ player.emerald_collected }}</div>
+                            <div class="stat-label">Изумруды</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="col-md-6">
+            <div class="stat-section">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle text-secondary me-2"></i>Дополнительно
+                </h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-primary">{{ player.items_purchased }}</div>
+                            <div class="stat-label">Покупок</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-value text-warning">{{ player.total_resources }}</div>
+                            <div class="stat-label">Всего ресурсов</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="stat-box">
+                            <div class="stat-value text-muted small">
+                                {{ player.created_at.strftime('%d.%m.%Y %H:%M') }}
+                            </div>
+                            <div class="stat-label">Дата регистрации</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASCEND Performance Card -->
+    <div class="ascend-section mb-5">
+        <h3 class="section-title text-center mb-4">
+            <i class="fas fa-medal text-warning me-2"></i>ASCEND Performance Card
+        </h3>
+        {% include 'ascend_card.html' %}
+
+        {% if is_admin %}
+        <!-- ASCEND Editor -->
+        <div class="ascend-editor mt-4">
+            <h4 class="text-warning">
+                <i class="fas fa-edit me-2"></i>Редактировать ASCEND данные
+            </h4>
+            <form id="ascendEditForm" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">PvP</label>
+                    <select class="form-select" name="pvp_tier" id="pvp_tier">
+                        <option value="S+">S+ Tier</option>
+                        <option value="S">S Tier</option>
+                        <option value="A+">A+ Tier</option>
+                        <option value="A">A Tier</option>
+                        <option value="B+">B+ Tier</option>
+                        <option value="B">B Tier</option>
+                        <option value="C+">C+ Tier</option>
+                        <option value="C">C Tier</option>
+                        <option value="D">D Tier</option>
+                    </select>
+                    <input type="range" class="form-range mt-2" name="pvp_score" id="pvp_score"
+                           min="0" max="100" value="25">
+                    <small class="form-text">Очки: <span id="pvp_score_display">25</span></small>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Clutching</label>
+                    <select class="form-select" name="clutching_tier" id="clutching_tier">
+                        <option value="S+">S+ Tier</option>
+                        <option value="S">S Tier</option>
+                        <option value="A+">A+ Tier</option>
+                        <option value="A">A Tier</option>
+                        <option value="B+">B+ Tier</option>
+                        <option value="B">B Tier</option>
+                        <option value="C+">C+ Tier</option>
+                        <option value="C">C Tier</option>
+                        <option value="D">D Tier</option>
+                    </select>
+                    <input type="range" class="form-range mt-2" name="clutching_score" id="clutching_score"
+                           min="0" max="100" value="25">
+                    <small class="form-text">Очки: <span id="clutching_score_display">25</span></small>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Block Placement</label>
+                    <select class="form-select" name="block_placement_tier" id="block_placement_tier">
+                        <option value="S+">S+ Tier</option>
+                        <option value="S">S Tier</option>
+                        <option value="A+">A+ Tier</option>
+                        <option value="A">A Tier</option>
+                        <option value="B+">B+ Tier</option>
+                        <option value="B">B Tier</option>
+                        <option value="C+">C+ Tier</option>
+                        <option value="C">C Tier</option>
+                        <option value="D">D Tier</option>
+                    </select>
+                    <input type="range" class="form-range mt-2" name="block_placement_score" id="block_placement_score"
+                           min="0" max="100" value="25">
+                    <small class="form-text">Очки: <span id="block_placement_score_display">25</span></small>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Game Sense</label>
+                    <select class="form-select" name="gamesense_tier" id="gamesense_tier">
+                        <option value="S+">S+ Tier</option>
+                        <option value="S">S Tier</option>
+                        <option value="A+">A+ Tier</option>
+                        <option value="A">A Tier</option>
+                        <option value="B+">B+ Tier</option>
+                        <option value="B">B Tier</option>
+                        <option value="C+">C+ Tier</option>
+                        <option value="C">C Tier</option>
+                        <option value="D">D Tier</option>
+                    </select>
+                    <input type="range" class="form-range mt-2" name="gamesense_score" id="gamesense_score"
+                           min="0" max="100" value="25">
+                    <small class="form-text">Очки: <span id="gamesense_score_display">25</span></small>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Общий уровень</label>
+                    <select class="form-select" name="overall_tier" id="overall_tier">
+                        <option value="S+">S+ Tier</option>
+                        <option value="S">S Tier</option>
+                        <option value="A+">A+ Tier</option>
+                        <option value="A">A Tier</option>
+                        <option value="B+">B+ Tier</option>
+                        <option value="B">B Tier</option>
+                        <option value="C+">C+ Tier</option>
+                        <option value="C">C Tier</option>
+                        <option value="D">D Tier</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Оценщик</label>
+                    <input type="text" class="form-control" name="evaluator_name" id="evaluator_name"
+                           value="Elite Squad">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Комментарий</label>
+                    <textarea class="form-control" name="comment" id="ascend_comment_field" rows="3"
+                              placeholder="Комментарий к оценке игрока..."></textarea>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save me-2"></i>Сохранить ASCEND данные
+                    </button>
+                    <button type="button" class="btn btn-info ms-2" onclick="loadCurrentASCENDData()">
+                        <i class="fas fa-refresh"></i> Загрузить текущие данные
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if is_admin %}
+    <div class="admin-section">
+        <h3 class="section-title">
+            <i class="fas fa-edit text-warning me-2"></i>Редактирование (Админ)
+        </h3>
+        <form method="POST" action="{{ url_for('edit_player', player_id=player.id) }}" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Киллы</label>
+                <input type="number" class="form-control" name="kills" value="{{ player.kills }}" min="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Финальные киллы</label>
+                <input type="number" class="form-control" name="final_kills" value="{{ player.final_kills }}" min="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Смерти</label>
+                <input type="number" class="form-control" name="deaths" value="{{ player.deaths }}" min="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Финальные смерти</label>
+                <input type="number" class="form-control" name="final_deaths" value="{{ player.final_deaths }}" min="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Кровати</label>
+                <input type="number" class="form-control" name="beds_broken" value="{{ player.beds_broken }}" min="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Игры</label>
+                <input type="number" class="form-control" name="games_played" value="{{ player.games_played }}" min="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Победы</label>
+                <input type="number" class="form-control" name="wins" value="{{ player.wins }}" min="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Опыт</label>
+                <input type="number" class="form-control" name="experience" value="{{ player.experience }}" min="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Роль</label>
+                <input type="text" class="form-control" name="role" value="{{ player.role }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Железо</label>
+                <input type="number" class="form-control" name="iron_collected" value="{{ player.iron_collected }}" min="0">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Золото</label>
+                <input type="number" class="form-control" name="gold_collected" value="{{ player.gold_collected }}" min="0">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Алмазы</label>
+                <input type="number" class="form-control" name="diamond_collected" value="{{ player.diamond_collected }}" min="0">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Изумруды</label>
+                <input type="number" class="form-control" name="emerald_collected" value="{{ player.emerald_collected }}" min="0">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Покупки</label>
+                <input type="number" class="form-control" name="items_purchased" value="{{ player.items_purchased }}" min="0">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Сервер</label>
+                <input type="text" class="form-control" name="server_ip" value="{{ player.server_ip }}">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-save me-2"></i>Сохранить изменения
+                </button>
+                <button type="button" class="btn btn-danger ms-2"
+                        onclick="confirmDelete({{ player.id }}, '{{ player.nickname }}')">
+                    <i class="fas fa-trash me-2"></i>Удалить игрока
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title">Подтверждение удаления</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы уверены, что хотите удалить игрока <strong>{{ player.nickname }}</strong>?</p>
+                    <p class="text-muted small">Это действие нельзя отменить.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <form method="POST" action="{{ url_for('delete_player', player_id=player.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Удалить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Navigation -->
+    <div class="text-center mt-5">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i>Назад к таблице лидеров
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Initialize ASCEND editor if admin
+{% if is_admin %}
+function confirmDelete(playerId, playerName) {
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function initASCENDEditor() {
+    // Add event listeners for score sliders
+    const scoreSliders = ['pvp_score', 'clutching_score', 'block_placement_score', 'gamesense_score'];
+    scoreSliders.forEach(sliderId => {
+        const slider = document.getElementById(sliderId);
+        const display = document.getElementById(sliderId + '_display');
+        if (slider && display) {
+            slider.addEventListener('input', function() {
+                display.textContent = this.value;
+            });
+        }
+    });
+
+    // Handle form submission
+    const form = document.getElementById('ascendEditForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveASCENDData();
+        });
+    }
+
+    // Load current data on page load
+    loadCurrentASCENDData();
+}
+
+function loadCurrentASCENDData() {
+    const playerId = {{ player.id }};
+    fetch(`/api/player/${playerId}/ascend-data`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.ascend) {
+                populateASCENDForm(data.ascend);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading current ASCEND data:', error);
+        });
+}
+
+function populateASCENDForm(ascendData) {
+    // Populate selects
+    document.getElementById('pvp_tier').value = ascendData.pvp_tier || 'D';
+    document.getElementById('clutching_tier').value = ascendData.clutching_tier || 'D';
+    document.getElementById('block_placement_tier').value = ascendData.block_placement_tier || 'D';
+    document.getElementById('gamesense_tier').value = ascendData.gamesense_tier || 'D';
+    document.getElementById('overall_tier').value = ascendData.overall_tier || 'D';
+
+    // Populate sliders
+    document.getElementById('pvp_score').value = ascendData.pvp_score || 25;
+    document.getElementById('clutching_score').value = ascendData.clutching_score || 25;
+    document.getElementById('block_placement_score').value = ascendData.block_placement_score || 25;
+    document.getElementById('gamesense_score').value = ascendData.gamesense_score || 25;
+
+    // Update displays
+    document.getElementById('pvp_score_display').textContent = ascendData.pvp_score || 25;
+    document.getElementById('clutching_score_display').textContent = ascendData.clutching_score || 25;
+    document.getElementById('block_placement_score_display').textContent = ascendData.block_placement_score || 25;
+    document.getElementById('gamesense_score_display').textContent = ascendData.gamesense_score || 25;
+
+    // Populate text fields
+    document.getElementById('evaluator_name').value = ascendData.evaluator_name || 'Elite Squad';
+    document.getElementById('ascend_comment_field').value = ascendData.comment || '';
+}
+
+function saveASCENDData() {
+    const form = document.getElementById('ascendEditForm');
+    const formData = new FormData(form);
+
+    const data = {
+        player_id: {{ player.id }},
+        pvp_tier: formData.get('pvp_tier'),
+        clutching_tier: formData.get('clutching_tier'),
+        block_placement_tier: formData.get('block_placement_tier'),
+        gamesense_tier: formData.get('gamesense_tier'),
+        overall_tier: formData.get('overall_tier'),
+        pvp_score: parseInt(formData.get('pvp_score')) || 25,
+        clutching_score: parseInt(formData.get('clutching_score')) || 25,
+        block_placement_score: parseInt(formData.get('block_placement_score')) || 25,
+        gamesense_score: parseInt(formData.get('gamesense_score')) || 25,
+        evaluator_name: formData.get('evaluator_name') || 'Elite Squad',
+        comment: formData.get('comment') || ''
+    };
+
+    fetch('/api/ascend/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('ASCEND данные успешно сохранены!');
+            // Trigger event to update ASCEND card
+            window.dispatchEvent(new CustomEvent('ascend-updated'));
+            // Hide modal if exists
+            const modal = bootstrap.Modal.getInstance(document.getElementById('ascendEditModal'));
+            if (modal) modal.hide();
+        } else {
+            alert('Ошибка сохранения: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving ASCEND data:', error);
+        alert('Произошла ошибка при сохранении данных');
+    });(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('ASCEND данные успешно обновлены!');
+            // Reload the ASCEND card
+            loadASCENDData({{ player.id }});
+        } else {
+            alert('Ошибка при сохранении: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving ASCEND data:', error);
+        alert('Произошла ошибка при сохранении данных');
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initASCENDEditor();
+});
+{% endif %}
+
+// Load player gradients on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadPlayerGradients({{ player.id }});
+});
+</script>
+{% endblock %}

@@ -1,0 +1,846 @@
+{% extends "base.html" %}
+
+{% block title %}Квесты{% endblock %}
+
+{% block content %}
+<div class="quests-page">
+    <!-- Hero Section -->
+    <div class="quests-hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-icon">🗡️</div>
+                <h1 class="hero-title">Квесты</h1>
+                <p class="hero-subtitle">Выполняйте задания и получайте эпические награды!</p>
+
+                {% if current_player %}
+                <div class="player-progress-summary">
+                    <div class="progress-stat">
+                        <div class="stat-value">{{ current_player.level }}</div>
+                        <div class="stat-label">Уровень</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="stat-value">{{ current_player.coins }}</div>
+                        <div class="stat-label">Койны</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="stat-value">{{ current_player.reputation }}</div>
+                        <div class="stat-label">Репутация</div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="login-prompt">
+                    <i class="fas fa-user-lock"></i>
+                    <p>Войдите в систему, чтобы принимать квесты!</p>
+                    <a href="{{ url_for('player_login') }}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Войти
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="hero-background"></div>
+    </div>
+
+    <div class="container">
+        <!-- Quest Categories -->
+        <div class="quest-categories">
+            <button class="category-btn active" data-category="daily">
+                <i class="fas fa-sun"></i>
+                <span>Ежедневные</span>
+                <div class="category-glow"></div>
+            </button>
+            <button class="category-btn" data-category="weekly">
+                <i class="fas fa-calendar-week"></i>
+                <span>Еженедельные</span>
+                <div class="category-glow"></div>
+            </button>
+            <button class="category-btn" data-category="monthly">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Месячные</span>
+                <div class="category-glow"></div>
+            </button>
+            <button class="category-btn" data-category="permanent">
+                <i class="fas fa-infinity"></i>
+                <span>Постоянные</span>
+                <div class="category-glow"></div>
+            </button>
+            <button class="category-btn" data-category="special">
+                <i class="fas fa-star"></i>
+                <span>Особые</span>
+                <div class="category-glow"></div>
+            </button>
+        </div>
+
+        <!-- Quest Grid -->
+        <div class="quest-grid" id="questGrid">
+            {% for quest in quests %}
+            <div class="quest-card modern-quest-card {{ quest.quest_category }} {{ quest.difficulty }}" 
+                 data-category="{{ quest.quest_category }}"
+                 data-difficulty="{{ quest.difficulty }}">
+
+                <div class="quest-card-inner">
+                    <!-- Header -->
+                    <div class="quest-header">
+                        <div class="quest-icon-container {{ quest.difficulty }}">
+                            <i class="{{ quest.icon }} quest-icon"></i>
+                            <div class="icon-glow"></div>
+                        </div>
+                        <div class="quest-badges">
+                            <span class="difficulty-badge {{ quest.difficulty }}">{{ quest.difficulty|title }}</span>
+                            <span class="category-badge {{ quest.quest_category }}">{{ quest.quest_category|title }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="quest-content">
+                        <h3 class="quest-title">{{ quest.title }}</h3>
+                        <p class="quest-description">{{ quest.description }}</p>
+                    </div>
+
+                    <!-- Progress -->
+                    {% if current_player and quest.id in player_progress %}
+                    {% set progress = player_progress[quest.id] %}
+                    <div class="quest-progress-section">
+                        <div class="progress-info">
+                            <span class="progress-text">Прогресс</span>
+                            <span class="progress-numbers">{{ progress.current_progress }}/{{ quest.target_value }}</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill {{ quest.difficulty }}" 
+                                     style="width: {{ progress.progress_percentage }}%"></div>
+                            </div>
+                            <span class="progress-percentage">{{ progress.progress_percentage }}%</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Rewards -->
+                    <div class="quest-rewards">
+                        <div class="rewards-title">Награды:</div>
+                        <div class="rewards-list">
+                            {% if quest.reward_xp > 0 %}
+                            <div class="reward-item">
+                                <i class="fas fa-star"></i>
+                                <span>{{ quest.reward_xp }} XP</span>
+                            </div>
+                            {% endif %}
+                            {% if quest.reward_coins > 0 %}
+                            <div class="reward-item">
+                                <i class="fas fa-coins"></i>
+                                <span>{{ quest.reward_coins }}</span>
+                            </div>
+                            {% endif %}
+                            {% if quest.reward_reputation > 0 %}
+                            <div class="reward-item">
+                                <i class="fas fa-heart"></i>
+                                <span>{{ quest.reward_reputation }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="quest-footer">
+                        {% if current_player %}
+                            {% if quest.id in player_progress %}
+                                {% set progress = player_progress[quest.id] %}
+                                {% if progress.is_completed %}
+                                <button class="quest-btn completed" disabled>
+                                    <i class="fas fa-check"></i>
+                                    Выполнено
+                                </button>
+                                {% elif progress.is_accepted %}
+                                <button class="quest-btn in-progress" disabled>
+                                    <i class="fas fa-clock"></i>
+                                    В процессе
+                                </button>
+                                {% else %}
+                                <form method="POST" action="{{ url_for('accept_quest', quest_id=quest.id) }}">
+                                    <button type="submit" class="quest-btn accept">
+                                        <i class="fas fa-play"></i>
+                                        Принять
+                                    </button>
+                                </form>
+                                {% endif %}
+                            {% else %}
+                            <form method="POST" action="{{ url_for('accept_quest', quest_id=quest.id) }}">
+                                <button type="submit" class="quest-btn accept">
+                                    <i class="fas fa-play"></i>
+                                    Принять
+                                </button>
+                            </form>
+                            {% endif %}
+                        {% else %}
+                        <button class="quest-btn locked" disabled>
+                            <i class="fas fa-lock"></i>
+                            Требуется вход
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="quest-card-glow"></div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">📋</div>
+            <h3>Квестов не найдено</h3>
+            <p>В этой категории пока нет доступных квестов</p>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Hero Section */
+.quests-hero {
+    position: relative;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    margin-bottom: 50px;
+    border-bottom: 3px solid #e91e63; /* Accent color */
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://via.placeholder.com/1500x500/1a1a2e/e91e63?text=Quest+Background') center center/cover no-repeat;
+    filter: brightness(0.6) blur(2px);
+    z-index: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
+.hero-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: #ffc107; /* Warning color */
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    background: linear-gradient(90deg, #ffc107, #e91e63);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    font-weight: 300;
+    max-width: 600px;
+    margin: 0 auto;
+    color: #c0c0c0;
+}
+
+.player-progress-summary {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.progress-stat {
+    text-align: center;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progress-stat .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffc107;
+}
+
+.progress-stat .stat-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #b0b0b0;
+    text-transform: uppercase;
+}
+
+.login-prompt {
+    background: rgba(255, 0, 0, 0.1); /* Reddish tint for alert */
+    padding: 25px;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 0, 0, 0.3);
+    display: inline-block;
+    text-align: center;
+}
+
+.login-prompt i {
+    font-size: 2rem;
+    color: #ffc107;
+    margin-bottom: 10px;
+    animation: pulse 1.5s infinite;
+}
+
+.login-prompt p {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: #e0e0e0;
+}
+
+.login-prompt .btn-primary {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #1a1a2e;
+    font-weight: bold;
+    padding: 10px 25px;
+    border-radius: 25px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-prompt .btn-primary:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.5);
+}
+
+/* Quest Categories */
+.quest-categories {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(233, 30, 99, 0.1));
+    border: 2px solid rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.category-btn i {
+    font-size: 1.2rem;
+}
+
+.category-btn.active {
+    background: linear-gradient(135deg, #ffc107, #e91e63);
+    border-color: #e91e63;
+    color: #fff;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(233, 30, 99, 0.5);
+}
+
+.category-btn.active .category-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 70%);
+    animation: glowRotate 3s infinite linear;
+}
+
+@keyframes glowRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Quest Card */
+.quest-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+}
+
+.modern-quest-card {
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(40, 40, 60, 0.95));
+    border: 1px solid rgba(255, 193, 7, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%; /* Ensure cards take available height */
+}
+
+.modern-quest-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: #e91e63;
+    box-shadow: 0 15px 40px rgba(233, 30, 99, 0.3);
+}
+
+.quest-card-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.quest-card-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 0, rgba(255, 193, 7, 0.3), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.modern-quest-card:hover .quest-card-glow {
+    opacity: 1;
+}
+
+/* Header */
+.quest-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.quest-icon-container {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    position: relative;
+}
+
+.quest-icon-container .quest-icon {
+    font-size: 2.5rem;
+    color: #fff;
+}
+
+.quest-icon-container::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 20px;
+    background: var(--glow-color, radial-gradient(circle, rgba(255, 193, 7, 0.5) 0%, rgba(255, 193, 7, 0) 70%));
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+}
+
+.quest-icon-container.easy::before { --glow-color: radial-gradient(circle, rgba(40, 167, 69, 0.5) 0%, rgba(40, 167, 69, 0) 70%); }
+.quest-icon-container.medium::before { --glow-color: radial-gradient(circle, rgba(255, 193, 7, 0.5) 0%, rgba(255, 193, 7, 0) 70%); }
+.quest-icon-container.hard::before { --glow-color: radial-gradient(circle, rgba(220, 53, 69, 0.5) 0%, rgba(220, 53, 69, 0) 70%); }
+.quest-icon-container.epic::before { --glow-color: radial-gradient(circle, rgba(13, 202, 240, 0.5) 0%, rgba(13, 202, 240, 0) 70%); }
+
+.modern-quest-card:hover .quest-icon-container::before { opacity: 1; }
+
+.quest-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-grow: 1;
+}
+
+.difficulty-badge, .category-badge {
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+    display: inline-block;
+    text-align: center;
+}
+
+.difficulty-badge.easy { background-color: #28a745; } /* Green */
+.difficulty-badge.medium { background-color: #ffc107; } /* Yellow */
+.difficulty-badge.hard { background-color: #dc3545; } /* Red */
+.difficulty-badge.epic { background: linear-gradient(45deg, #6f42c1, #d63384); } /* Purple to Pink */
+
+.category-badge.daily { background-color: rgba(255, 193, 7, 0.7); }
+.category-badge.weekly { background-color: rgba(13, 202, 240, 0.7); }
+.category-badge.monthly { background-color: rgba(108, 117, 125, 0.7); }
+.category-badge.permanent { background-color: rgba(40, 167, 69, 0.7); }
+.category-badge.special { background-color: rgba(220, 53, 69, 0.7); }
+
+
+/* Content */
+.quest-content {
+    margin-bottom: 20px;
+}
+
+.quest-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffc107;
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+
+.quest-description {
+    font-size: 0.9rem;
+    color: #b0b0b0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Limit to 3 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Progress */
+.quest-progress-section {
+    margin-bottom: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #ccc;
+    margin-bottom: 8px;
+}
+
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.progress-bar {
+    flex-grow: 1;
+    height: 15px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease-out;
+}
+
+.progress-fill.easy { background: linear-gradient(90deg, #28a745, #218838); }
+.progress-fill.medium { background: linear-gradient(90deg, #ffc107, #e0a800); }
+.progress-fill.hard { background: linear-gradient(90deg, #dc3545, #c82333); }
+.progress-fill.epic { background: linear-gradient(90deg, #13b4ff, #007bff); }
+
+.progress-percentage {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffc107;
+    width: 50px; /* Fixed width for alignment */
+    text-align: right;
+}
+
+/* Rewards */
+.quest-rewards {
+    margin-bottom: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.rewards-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.rewards-list {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.reward-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #e0e0e0;
+}
+
+.reward-item i {
+    color: #ffc107;
+    font-size: 1.1rem;
+}
+
+/* Footer */
+.quest-footer {
+    margin-top: auto; /* Push footer to bottom */
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.quest-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.quest-btn.accept {
+    background: linear-gradient(90deg, #ffc107, #e91e63);
+    color: #fff;
+    box-shadow: 0 5px 15px rgba(233, 30, 99, 0.4);
+}
+
+.quest-btn.accept:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(233, 30, 99, 0.6);
+}
+
+.quest-btn.completed, .quest-btn.in-progress, .quest-btn.locked {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+.quest-btn.completed { color: #28a745; border: 1px solid #28a745; }
+.quest-btn.in-progress { color: #ffc107; border: 1px solid #ffc107; }
+.quest-btn.locked { color: #dc3545; border: 1px solid #dc3545; }
+
+.quest-btn.completed:hover, .quest-btn.in-progress:hover, .quest-btn.locked:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Locked Quests Section */
+.locked-quests-section {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 3px solid rgba(220, 53, 69, 0.3);
+}
+
+.locked-quests-section h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #dc3545;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.locked-quests-section p {
+    font-size: 1.1rem;
+    color: #b0b0b0;
+}
+
+.locked-quest .quest-card-inner {
+    filter: blur(4px) grayscale(60%);
+    transform: scale(0.98);
+}
+
+.locked-quest {
+    border-color: rgba(220, 53, 69, 0.5) !important;
+    box-shadow: 0 0 30px rgba(220, 53, 69, 0.3) !important;
+}
+
+.locked-quest:hover {
+    transform: translateY(-5px) scale(0.98); /* Keep scale for blur effect */
+    border-color: rgba(220, 53, 69, 0.7) !important;
+}
+
+.locked-quest .quest-header {
+    position: relative;
+}
+
+.locked-quest .quest-header::before {
+    content: 'Locked';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-20deg);
+    font-size: 2rem;
+    font-weight: 800;
+    color: rgba(220, 53, 69, 0.8);
+    text-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+    z-index: 10;
+}
+
+.locked-quest .quest-title,
+.locked-quest .quest-description,
+.locked-quest .quest-rewards,
+.locked-quest .quest-footer {
+    opacity: 0.7;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    margin-top: 40px;
+    background: rgba(40, 40, 60, 0.7);
+    border-radius: 20px;
+    border: 2px dashed rgba(108, 117, 125, 0.3);
+}
+
+.empty-icon {
+    font-size: 3.5rem;
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.empty-state h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    color: #b0b0b0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .quest-categories {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .category-btn {
+        font-size: 0.9rem;
+        padding: 10px 20px;
+    }
+    .hero-title { font-size: 2.8rem; }
+    .hero-subtitle { font-size: 1rem; }
+    .progress-stat .stat-value { font-size: 1.5rem; }
+    .quest-icon-container { width: 50px; height: 50px; }
+    .quest-icon { font-size: 2rem; }
+}
+
+@media (max-width: 768px) {
+    .quest-grid {
+        grid-template-columns: 1fr;
+    }
+    .quests-hero { height: 400px; }
+    .hero-title { font-size: 2.2rem; }
+    .hero-subtitle { font-size: 0.95rem; }
+    .player-progress-summary { gap: 15px; }
+    .login-prompt { padding: 15px; }
+    .login-prompt p { font-size: 1rem; }
+    .quest-card-inner { padding: 20px; }
+}
+
+@media (max-width: 576px) {
+    .quests-hero { height: 350px; }
+    .hero-icon { font-size: 3rem; }
+    .hero-title { font-size: 2rem; }
+    .hero-subtitle { font-size: 0.9rem; }
+    .quest-categories { gap: 10px; }
+    .category-btn { padding: 8px 15px; font-size: 0.85rem; }
+    .quest-btn { font-size: 0.8rem; padding: 6px 15px; min-width: 100px;}
+    .quest-title { font-size: 1.2rem; }
+    .quest-description { font-size: 0.8rem; }
+    .progress-info, .progress-percentage { font-size: 0.75rem; }
+    .reward-item { font-size: 0.8rem; gap: 5px;}
+    .reward-item i { font-size: 1rem; }
+}
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    const questCards = document.querySelectorAll('.quest-card');
+    const emptyState = document.getElementById('emptyState');
+
+    function filterQuests(category) {
+        let visibleCount = 0;
+
+        questCards.forEach(card => {
+            const cardCategory = card.dataset.category;
+            const isSpecial = ['thematic', 'mythic'].includes(cardCategory);
+
+            if (category === 'all' || cardCategory === category || (category === 'special' && isSpecial)) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    categoryButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active button
+            categoryButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // Filter quests
+            const category = button.dataset.category;
+            filterQuests(category);
+        });
+    });
+
+    // Initialize with daily quests
+    filterQuests('daily');
+});
+</script>
+{% endblock %}

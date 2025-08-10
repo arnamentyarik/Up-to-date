@@ -1,0 +1,526 @@
+
+{% extends "base.html" %}
+
+{% block title %}Инвентарь - {{ current_player.nickname if current_player else 'Minecraft Bedwars Leaderboard' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="hero-section p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-backpack text-info me-3 glow-effect"></i>
+                    <span class="gradient-text">Инвентарь</span>
+                </h1>
+                <p class="lead text-light">Управляйте своими градиентами и предметами</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                {% if current_player %}
+                <div class="d-flex flex-column gap-2">
+                    <div class="coins-display">
+                        <i class="fas fa-coins me-2"></i>{{ current_player.coins }} койнов
+                    </div>
+                    <div class="reputation-display">
+                        <i class="fas fa-star me-2"></i>{{ current_player.reputation }} репутации
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if not current_player %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Необходимо <a href="{{ url_for('player_login') }}" class="alert-link">войти в систему</a> для доступа к инвентарю!
+    </div>
+    {% else %}
+
+    {% set inventory = current_player.get_inventory() %}
+    
+    <div class="inventory-grid">
+        <!-- Weapons Section -->
+        {% if inventory.get('weapons') %}
+        <div class="inventory-section mb-4">
+            <div class="card border-0" style="background: var(--bg-secondary);">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="text-danger mb-0">
+                        <i class="fas fa-sword me-2"></i>Оружие
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for item_id, quantity in inventory['weapons'].items() %}
+                        <div class="col-md-4">
+                            <div class="inventory-item">
+                                <div class="item-icon">
+                                    <i class="fas fa-sword"></i>
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-name">{{ item_id|title }}</div>
+                                    <div class="item-quantity">x{{ quantity }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Armor Section -->
+        {% if inventory.get('armor') %}
+        <div class="inventory-section mb-4">
+            <div class="card border-0" style="background: var(--bg-secondary);">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="text-info mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Броня
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for item_id, quantity in inventory['armor'].items() %}
+                        <div class="col-md-4">
+                            <div class="inventory-item">
+                                <div class="item-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-name">{{ item_id|title }}</div>
+                                    <div class="item-quantity">x{{ quantity }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Resources Section -->
+        {% if inventory.get('resources') %}
+        <div class="inventory-section mb-4">
+            <div class="card border-0" style="background: var(--bg-secondary);">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="text-warning mb-0">
+                        <i class="fas fa-gem me-2"></i>Ресурсы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for item_id, quantity in inventory['resources'].items() %}
+                        <div class="col-md-3">
+                            <div class="inventory-item">
+                                <div class="item-icon">
+                                    {% if item_id == 'iron' %}
+                                        <i class="fas fa-cube text-secondary"></i>
+                                    {% elif item_id == 'gold' %}
+                                        <i class="fas fa-cube text-warning"></i>
+                                    {% elif item_id == 'diamond' %}
+                                        <i class="fas fa-gem text-info"></i>
+                                    {% elif item_id == 'emerald' %}
+                                        <i class="fas fa-gem text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-cube"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-name">{{ item_id|title }}</div>
+                                    <div class="item-quantity">x{{ quantity }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Tools Section -->
+        {% if inventory.get('tools') %}
+        <div class="inventory-section mb-4">
+            <div class="card border-0" style="background: var(--bg-secondary);">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="text-success mb-0">
+                        <i class="fas fa-tools me-2"></i>Инструменты
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for item_id, quantity in inventory['tools'].items() %}
+                        <div class="col-md-4">
+                            <div class="inventory-item">
+                                <div class="item-icon">
+                                    {% if 'pickaxe' in item_id %}
+                                        <i class="fas fa-hammer"></i>
+                                    {% elif 'axe' in item_id %}
+                                        <i class="fas fa-tools"></i>
+                                    {% elif 'shear' in item_id %}
+                                        <i class="fas fa-cut"></i>
+                                    {% else %}
+                                        <i class="fas fa-tools"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-name">{{ item_id|title }}</div>
+                                    <div class="item-quantity">x{{ quantity }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Special Items Section -->
+        {% if inventory.get('special') %}
+        <div class="inventory-section mb-4">
+            <div class="card border-0" style="background: var(--bg-secondary);">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="text-purple mb-0">
+                        <i class="fas fa-magic me-2"></i>Особые предметы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for item_id, quantity in inventory['special'].items() %}
+                        <div class="col-md-4">
+                            <div class="inventory-item special-item">
+                                <div class="item-icon">
+                                    <i class="fas fa-star text-warning"></i>
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-name">{{ item_id|title }}</div>
+                                    <div class="item-quantity">x{{ quantity }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Empty Inventory -->
+        {% if not inventory %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <h4>Инвентарь пуст</h4>
+            <p class="text-muted">Играйте в игры и выполняйте квесты, чтобы получить предметы!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Inventory Stats -->
+    <div class="inventory-stats mt-4">
+        <div class="card border-0" style="background: var(--bg-secondary);">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2 text-info"></i>Статистика инвентаря
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <div class="stat-number text-warning">{{ inventory|length }}</div>
+                            <div class="stat-label">Категорий</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <div class="stat-number text-success">
+                                {% set total_items = [] %}
+                                {% for category, items in inventory.items() %}
+                                    {% for item, quantity in items.items() %}
+                                        {% if total_items.append(quantity) %}{% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {{ total_items|sum if total_items else 0 }}
+                            </div>
+                            <div class="stat-label">Всего предметов</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <div class="stat-number text-info">
+                                {% set unique_items = [] %}
+                                {% for category, items in inventory.items() %}
+                                    {% for item in items.keys() %}
+                                        {% if unique_items.append(item) %}{% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {{ unique_items|length if unique_items else 0 }}
+                            </div>
+                            <div class="stat-label">Уникальных</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card text-center">
+                            <div class="stat-number text-purple">
+                                {{ inventory.get('special', {})|length }}
+                            </div>
+                            <div class="stat-label">Особых</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.inventory-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.inventory-item:hover {
+    transform: translateY(-3px);
+    border-color: var(--warning-color);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.inventory-item.special-item {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(236, 72, 153, 0.2));
+    border-color: #9333ea;
+}
+
+.item-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.item-name {
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 5px;
+}
+
+.item-quantity {
+    color: var(--warning-color);
+    font-weight: 500;
+}
+
+.text-purple {
+    color: #9333ea !important;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+}
+</style>
+{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Инвентарь - Minecraft Bedwars Leaderboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="hero-section p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-backpack text-info me-3 glow-effect"></i>
+                    <span class="gradient-text">Инвентарь</span>
+                </h1>
+                <p class="lead text-light">Управляйте своими градиентами и предметами</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                {% if current_player %}
+                <div class="d-flex flex-column gap-2">
+                    <div class="coins-display">
+                        <i class="fas fa-coins me-2"></i>{{ current_player.coins }} койнов
+                    </div>
+                    <div class="reputation-display">
+                        <i class="fas fa-star me-2"></i>{{ current_player.reputation }} репутации
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if not current_player %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Необходимо <a href="{{ url_for('player_login') }}" class="alert-link">войти в систему</a> для доступа к инвентарю!
+    </div>
+    {% else %}
+
+    <!-- Gradients Section -->
+    <div class="inventory-section mb-5">
+        <h3 class="section-title mb-4">
+            <i class="fas fa-brush text-primary me-2"></i>Градиенты
+        </h3>
+        
+        {% if gradients %}
+        <div class="row" id="gradients-inventory">
+            {% for gradient_id, quantity in gradients.items() %}
+                {% set gradient = gradient_themes[gradient_id] %}
+                {% if gradient %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="gradient-inventory-card">
+                        <div class="card bg-dark border-secondary h-100">
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <h5 class="card-title">{{ gradient.display_name }}</h5>
+                                    <div class="gradient-preview mb-3" 
+                                         style="background: {{ gradient.css_gradient }}; padding: 15px; border-radius: 8px; color: white; font-weight: bold;">
+                                        Пример текста
+                                    </div>
+                                    <span class="badge bg-info">Количество: {{ quantity }}</span>
+                                </div>
+                                
+                                <div class="gradient-actions">
+                                    <h6 class="text-warning mb-3">Применить к:</h6>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-sm btn-outline-primary apply-gradient-btn" 
+                                                data-gradient-id="{{ gradient_id }}" 
+                                                data-element-type="nickname">
+                                            <i class="fas fa-user me-2"></i>Никнейм
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-warning apply-gradient-btn" 
+                                                data-gradient-id="{{ gradient_id }}" 
+                                                data-element-type="role">
+                                            <i class="fas fa-crown me-2"></i>Роль
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success apply-gradient-btn" 
+                                                data-gradient-id="{{ gradient_id }}" 
+                                                data-element-type="kills">
+                                            <i class="fas fa-sword me-2"></i>Киллы
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger apply-gradient-btn" 
+                                                data-gradient-id="{{ gradient_id }}" 
+                                                data-element-type="deaths">
+                                            <i class="fas fa-skull me-2"></i>Смерти
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info apply-gradient-btn" 
+                                                data-gradient-id="{{ gradient_id }}" 
+                                                data-element-type="wins">
+                                            <i class="fas fa-trophy me-2"></i>Победы
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light apply-gradient-btn" 
+                                                data-gradient-id="{{ gradient_id }}" 
+                                                data-element-type="experience">
+                                            <i class="fas fa-star me-2"></i>Опыт
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-palette fa-5x text-muted mb-3"></i>
+            <h4 class="text-muted">У вас нет градиентов</h4>
+            <p class="text-muted">Купите градиенты в магазине!</p>
+            <a href="{{ url_for('shop') }}" class="btn btn-primary">
+                <i class="fas fa-store me-2"></i>Перейти в магазин
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Current Gradients Section -->
+    <div class="current-gradients-section mb-5">
+        <h3 class="section-title mb-4">
+            <i class="fas fa-check-circle text-success me-2"></i>Активные градиенты
+        </h3>
+        
+        {% if current_gradients %}
+        <div class="row">
+            {% for element_type, gradient_data in current_gradients.items() %}
+            <div class="col-lg-6 mb-3">
+                <div class="card bg-dark border-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-1">{{ element_type|title }}</h6>
+                                <div class="gradient-sample" 
+                                     style="background: {{ gradient_data.css_gradient }}; color: white; padding: 8px 12px; border-radius: 4px; font-weight: bold; display: inline-block;">
+                                    Пример
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger remove-gradient-btn" 
+                                    data-element-type="{{ element_type }}">
+                                <i class="fas fa-times"></i> Убрать
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            У вас нет активных градиентов. Примените градиенты из инвентаря выше.
+        </div>
+        {% endif %}
+    </div>
+
+    {% endif %}
+</div>
+
+<script>
+// Handle gradient application
+document.addEventListener('click', function(e) {
+    if (e.target.matches('.apply-gradient-btn')) {
+        const gradientId = e.target.getAttribute('data-gradient-id');
+        const elementType = e.target.getAttribute('data-element-type');
+        applyGradientFromInventory(gradientId, elementType);
+    }
+    
+    if (e.target.matches('.remove-gradient-btn')) {
+        const elementType = e.target.getAttribute('data-element-type');
+        removeGradient(elementType);
+    }
+});
+
+function removeGradient(elementType) {
+    if (!confirm(`Убрать градиент с ${elementType}?`)) return;
+    
+    fetch('/api/remove-gradient', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            element_type: elementType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Ошибка при удалении градиента: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error removing gradient:', error);
+        alert('Произошла ошибка');
+    });
+}
+</script>
+{% endblock %}
